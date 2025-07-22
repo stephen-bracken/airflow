@@ -497,11 +497,10 @@ class TestKubernetesJobOperator:
         assert re.match(r"job-a-very-reasonable-task-name-[a-z0-9-]+", job.metadata.name) is not None
 
     @pytest.mark.non_db_test_override
-    @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.get_or_create_pod"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.build_job_request_obj"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.create_job"))
     @patch(HOOK_CLASS)
-    def test_execute(self, mock_hook, mock_create_job, mock_build_job_request_obj, mock_get_or_create_pod):
+    def test_execute(self, mock_hook, mock_create_job, mock_build_job_request_obj):
         mock_hook.return_value.is_job_failed.return_value = False
         mock_job_request_obj = mock_build_job_request_obj.return_value
         mock_job_expected = mock_create_job.return_value
@@ -572,7 +571,6 @@ class TestKubernetesJobOperator:
         assert not mock_hook.wait_until_job_complete.called
 
     @pytest.mark.non_db_test_override
-    @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.get_or_create_pod"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.build_job_request_obj"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.create_job"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.execute_deferrable"))
@@ -583,7 +581,6 @@ class TestKubernetesJobOperator:
         mock_execute_deferrable,
         mock_create_job,
         mock_build_job_request_obj,
-        mock_get_or_create_pod,
     ):
         mock_hook.return_value.is_job_failed.return_value = False
         mock_job_request_obj = mock_build_job_request_obj.return_value
@@ -615,12 +612,11 @@ class TestKubernetesJobOperator:
         assert not mock_hook.wait_until_job_complete.called
 
     @pytest.mark.non_db_test_override
-    @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.get_or_create_pod"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.build_job_request_obj"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.create_job"))
     @patch(HOOK_CLASS)
     def test_execute_fail(
-        self, mock_hook, mock_create_job, mock_build_job_request_obj, mock_get_or_create_pod
+        self, mock_hook, mock_create_job, mock_build_job_request_obj
     ):
         mock_hook.return_value.is_job_failed.return_value = "Error"
 
@@ -751,7 +747,6 @@ class TestKubernetesJobOperator:
         )
         assert actual_result is None
 
-    @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.get_or_create_pod"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.build_job_request_obj"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.create_job"))
     @patch(f"{HOOK_CLASS}.wait_until_job_complete")
@@ -760,7 +755,6 @@ class TestKubernetesJobOperator:
         mock_wait_until_job_complete,
         mock_create_job,
         mock_build_job_request_obj,
-        mock_get_or_create_pod,
     ):
         mock_job_expected = mock_create_job.return_value
         mock_ti = mock.MagicMock()
@@ -880,7 +874,6 @@ class TestKubernetesJobOperator:
     @pytest.mark.parametrize("get_logs", [True, False])
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.extract_xcom"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.get_pods"))
-    @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.get_or_create_pod"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.build_job_request_obj"))
     @patch(JOB_OPERATORS_PATH.format("KubernetesJobOperator.create_job"))
     @patch(f"{POD_MANAGER_CLASS}.fetch_requested_container_logs")
@@ -895,7 +888,6 @@ class TestKubernetesJobOperator:
         mocked_fetch_logs,
         mock_create_job,
         mock_build_job_request_obj,
-        mock_get_or_create_pod,
         mock_get_pods,
         mock_extract_xcom,
         get_logs,
