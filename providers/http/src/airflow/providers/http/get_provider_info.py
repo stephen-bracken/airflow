@@ -38,7 +38,10 @@ def get_provider_info():
         "operators": [
             {
                 "integration-name": "Hypertext Transfer Protocol (HTTP)",
-                "python-modules": ["airflow.providers.http.operators.http"],
+                "python-modules": [
+                    "airflow.providers.http.operators.http",
+                    "airflow.providers.http.operators.kerberos",
+                ],
             }
         ],
         "sensors": [

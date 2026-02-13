@@ -144,3 +144,10 @@ API until the function stop returning anything.
     :language: python
     :start-after: [START howto_operator_http_pagination_function]
     :end-before: [END howto_operator_http_pagination_function]
+
+HttpKerberosOperator
+--------------------
+
+the :class:`~airflow.providers.http.operators.kerberos.HttpKerberosOperator` provides the same function as the
+:class:`~airflow.providers.http.operators.http.HttpOperator`, but provides kerberos authentication with a keytab.
+The module requires ``apache-airflow[kerberos]`` to be installed.
