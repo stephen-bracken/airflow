@@ -110,6 +110,8 @@ class HttpHook(BaseHook):
     :param tcp_keep_alive_count: The TCP Keep Alive count parameter (corresponds to ``socket.TCP_KEEPCNT``)
     :param tcp_keep_alive_interval: The TCP Keep Alive interval parameter (corresponds to
         ``socket.TCP_KEEPINTVL``)
+    :param include_login: Include login field from the connection in auth. Defaults to true
+    :param auth_kwargs: additional keyword arguments for auth_type.
     """
 
     conn_name_attr = "http_conn_id"
@@ -129,6 +131,8 @@ class HttpHook(BaseHook):
         tcp_keep_alive_count: int = 20,
         tcp_keep_alive_interval: int = 30,
         adapter: HTTPAdapter | None = None,
+        include_login: bool = True,
+        auth_kwargs: dict[str, Any] | None = None
     ) -> None:
         super().__init__()
         self.http_conn_id = http_conn_id
@@ -148,6 +152,9 @@ class HttpHook(BaseHook):
             )
         else:
             self.keep_alive_adapter = None
+
+        self.auth_kwargs = auth_kwargs or {}
+        self.include_login = include_login
 
         self.merged_extra: dict = {}
 
@@ -210,10 +217,11 @@ class HttpHook(BaseHook):
         return session
 
     def _extract_auth(self, connection: Connection) -> Any | None:
-        if connection.login:
-            return self.auth_type(connection.login, connection.password)
+        if connection.login and self.include_login:
+            self.auth_kwargs["login"] = connection.login
+            self.auth_kwargs["password"] = connection.password
         if self._auth_type:
-            return self.auth_type()
+            return self.auth_type(**self.auth_kwargs)
         return None
 
     def _configure_session_from_extra(

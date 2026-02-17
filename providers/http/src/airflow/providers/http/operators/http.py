@@ -87,6 +87,8 @@ class HttpOperator(BaseOperator):
     :param deferrable: Run operator in the deferrable mode
     :param retry_args: Arguments which define the retry behaviour.
         See Tenacity documentation at https://github.com/jd/tenacity
+    :param include_login: Include login field from the connection in auth. Defaults to true
+    :param auth_kwargs: additional keyword arguments for auth_type.
     """
 
     conn_id_field = "http_conn_id"
@@ -120,6 +122,8 @@ class HttpOperator(BaseOperator):
         tcp_keep_alive_interval: int = 30,
         deferrable: bool = conf.getboolean("operators", "default_deferrable", fallback=False),
         retry_args: dict[str, Any] | None = None,
+        include_login: bool = True,
+        auth_kwargs: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -141,6 +145,8 @@ class HttpOperator(BaseOperator):
         self.deferrable = deferrable
         self.retry_args = retry_args
         self.request_kwargs = request_kwargs or {}
+        self.include_login = include_login
+        self.auth_kwargs = auth_kwargs or {}
 
     @property
     def hook(self) -> HttpHook:
@@ -157,6 +163,8 @@ class HttpOperator(BaseOperator):
                 tcp_keep_alive_idle=self.tcp_keep_alive_idle,
                 tcp_keep_alive_count=self.tcp_keep_alive_count,
                 tcp_keep_alive_interval=self.tcp_keep_alive_interval,
+                include_login=self.include_login,
+                auth_kwargs=self.auth_kwargs,
             )
         )
         return hook
