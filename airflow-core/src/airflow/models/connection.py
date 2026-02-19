@@ -48,6 +48,8 @@ log = logging.getLogger(__name__)
 RE_SANITIZE_CONN_ID = re.compile(r"^[\w#!()\-.:/\\]{1,}$")
 # the conn ID max len should be 250
 CONN_ID_MAX_LEN: int = 250
+# Pattern to mask URI password in log strings
+RE_SAFE_LOG_URI = re.compile(r"(.*):(.*)@")
 
 
 def sanitize_conn_id(conn_id: str | None, max_length=CONN_ID_MAX_LEN) -> str | None:
@@ -224,9 +226,16 @@ class Connection(Base, LoggingMixin):
         return conn_type
 
     def _parse_from_uri(self, uri: str):
+        uri_match = RE_SAFE_LOG_URI.search(uri)
+        if uri_match:
+            # Create sanitised uri for logging
+            pwd = uri_match.group(2)
+            safe_log_uri = uri.replace(pwd, "******")
+        else:  # Assume no password in URI
+            safe_log_uri = uri
         schemes_count_in_uri = uri.count("://")
         if schemes_count_in_uri > 2:
-            raise AirflowException(f"Invalid connection string: {uri}.")
+            raise AirflowException(f"Invalid connection string: {safe_log_uri}.")
         host_with_protocol = schemes_count_in_uri == 2
         uri_parts = urlsplit(uri)
         conn_type = uri_parts.scheme
@@ -235,7 +244,7 @@ class Connection(Base, LoggingMixin):
         if host_with_protocol:
             uri_splits = rest_of_the_url.split("://", 1)
             if "@" in uri_splits[0] or ":" in uri_splits[0]:
-                raise AirflowException(f"Invalid connection string: {uri}.")
+                raise AirflowException(f"Invalid connection string: {safe_log_uri}.")
         uri_parts = urlsplit(rest_of_the_url)
         protocol = uri_parts.scheme if host_with_protocol else None
         host = _parse_netloc_to_hostname(uri_parts)
