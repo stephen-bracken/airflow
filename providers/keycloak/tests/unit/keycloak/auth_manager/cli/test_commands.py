@@ -24,6 +24,8 @@ import pytest
 from airflow.api_fastapi.common.types import MenuItem
 from airflow.cli import cli_parser
 from airflow.providers.keycloak.auth_manager.cli.commands import (
+    READ_ONLY_ROLE_NAME,
+    READ_ONLY_SCOPED_RESOURCE_NAMES,
     SUPER_ADMIN_ROLE_NAME,
     TEAM_ROLE_NAMES,
     TEAM_SCOPED_RESOURCE_NAMES,
@@ -457,11 +459,11 @@ class TestCommands:
         with conf_vars({("keycloak_auth_manager", "client_id"): "test_client_id"}):
             create_permissions_command(self.arg_parser.parse_args(params))
 
-        for role_name in (*TEAM_ROLE_NAMES, SUPER_ADMIN_ROLE_NAME):
+        for role_name in (*TEAM_ROLE_NAMES, READ_ONLY_ROLE_NAME, SUPER_ADMIN_ROLE_NAME):
             mock_ensure_role_policy.assert_any_call(client, "test-id", role_name, _dry_run=False)
 
         mock_create_permissions.assert_called_once_with(client, "test-id", teams=[], _dry_run=False)
-        for role_name in TEAM_ROLE_NAMES:
+        for role_name in (*TEAM_ROLE_NAMES, READ_ONLY_ROLE_NAME):
             mock_attach_scope_policy.assert_any_call(
                 client,
                 "test-id",
@@ -488,6 +490,14 @@ class TestCommands:
             policy_name="Allow-SuperAdmin",
             scope_names=_get_extended_resource_methods() + ["LIST"],
             resource_names=[],
+            _dry_run=False,
+        )
+        mock_attach_resource_policy.assert_any_call(
+            client,
+            "test-id",
+            permission_name="ReadOnly",
+            policy_name="Allow-ReadOnly",
+            resource_names=READ_ONLY_SCOPED_RESOURCE_NAMES,
             _dry_run=False,
         )
         mock_attach_resource_policy.assert_any_call(
@@ -643,6 +653,18 @@ class TestCommands:
                 "Pool:team-a",
                 "Team:team-a",
                 "Variable:team-a",
+            ],
+            _dry_run=False,
+        )
+        mock_attach_policy.assert_any_call(
+            client,
+            "test-id",
+            permission_name="ReadOnly",
+            policy_name="Allow-ReadOnly",
+            scope_names=["GET", "MENU", "LIST"],
+            resource_names=[
+                "Dag:team-a",
+                "Team:team-a",
             ],
             _dry_run=False,
         )
