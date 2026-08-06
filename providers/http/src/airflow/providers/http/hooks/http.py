@@ -42,9 +42,11 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.strings import to_boolean
 
 if TYPE_CHECKING:
+    from aiohttp import BasicAuth
     from aiohttp.client_reqrep import ClientResponse
     from dns.rdtypes.IN.SRV import SRV
     from requests.adapters import HTTPAdapter
+    from requests.auth import AuthBase
 
     from airflow.models import Connection
 
@@ -536,7 +538,7 @@ class SessionConfig(BaseModel):
 
     base_url: str
     headers: dict[str, Any] | None = None
-    auth: aiohttp.BasicAuth | None = None
+    auth: BasicAuth | AuthBase | None = None
     extra_options: dict[str, Any] | None = None
 
 
@@ -593,7 +595,7 @@ class AsyncHttpSession(LoggingMixin):
         return self.config.extra_options
 
     @property
-    def auth(self) -> aiohttp.BasicAuth | None:
+    def auth(self) -> BasicAuth | AuthBase | None:
         return self.config.auth
 
     async def run(
@@ -696,7 +698,7 @@ class HttpAsyncHook(BaseHook):
     :param http_conn_id: http connection id that has the base
         API url i.e https://www.google.com/ and optional authentication credentials. Default
         headers can also be specified in the Extra field in json format.
-    :param auth_type: The auth type for the service
+    :param auth_type: The auth type for the service.
     :param retry_limit: Maximum number of times to retry this job if it fails  (default is 3)
     :param retry_delay: Delay between retry attempts (default is 1.0)
 
@@ -714,7 +716,7 @@ class HttpAsyncHook(BaseHook):
         self,
         method: str = "POST",
         http_conn_id: str = default_conn_name,
-        auth_type: Any = aiohttp.BasicAuth,
+        auth_type: AuthBase | BasicAuth | None = None,
         retry_limit: int = 3,
         retry_delay: float = 1.0,
     ) -> None:
@@ -722,7 +724,7 @@ class HttpAsyncHook(BaseHook):
         self.method = method.upper()
         self.base_url: str = ""
         self._retry_obj: Callable[..., Any]
-        self.auth_type: Any = auth_type
+        self._auth_type: Any = auth_type
         if retry_limit < 1:
             raise ValueError("Retry limit must be greater or equal to 1")
         self.retry_limit = retry_limit
@@ -731,6 +733,14 @@ class HttpAsyncHook(BaseHook):
         self._srv_lookup_enabled: bool = False
         self._srv_name: str | None = None
         self._srv_scheme: str = "http"
+
+    @property
+    def auth_type(self):
+        return self._auth_type or HTTPBasicAuth
+
+    @auth_type.setter
+    def auth_type(self, v):
+        self._auth_type = v
 
     def _get_request_func(
         self, session: aiohttp.ClientSession, method: str | None = None
@@ -757,7 +767,7 @@ class HttpAsyncHook(BaseHook):
             from airflow.providers.common.compat.connection import get_async_connection
 
             base_url: str = self.base_url
-            auth: aiohttp.BasicAuth | None = None
+            auth: BasicAuth | AuthBase | None = None
             headers: dict[str, Any] = {}
             extra_options: dict[str, Any] = {}
 
@@ -775,6 +785,8 @@ class HttpAsyncHook(BaseHook):
 
                 if conn.login:
                     auth = self.auth_type(conn.login, conn.password)
+                elif self.auth_type:
+                    auth = self.auth_type()
 
                 if conn.extra:
                     conn_extra_options, extra_options = _process_extra_options_from_connection(

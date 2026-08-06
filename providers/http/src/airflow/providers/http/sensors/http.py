@@ -22,10 +22,14 @@ from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from airflow.providers.common.compat.sdk import AirflowException, BaseSensorOperator, conf, determine_kwargs
+from airflow.providers.http.auth_helpers import resolve_auth_type, serialize_auth_type
 from airflow.providers.http.hooks.http import HttpHook
 from airflow.providers.http.triggers.http import HttpSensorTrigger
 
 if TYPE_CHECKING:
+    from aiohttp import BasicAuth
+    from requests.auth import AuthBase
+
     from airflow.sdk import Context, PokeReturnValue
 
 
@@ -82,6 +86,7 @@ class HttpSensor(BaseSensorOperator):
         ``socket.TCP_KEEPINTVL``)
     :param deferrable: If waiting for completion, whether to defer the task until done,
         default is ``False``
+    :param auth_type: The auth type for the service.
     """
 
     template_fields: Sequence[str] = ("endpoint", "request_params", "headers", "http_conn_id")
@@ -103,6 +108,7 @@ class HttpSensor(BaseSensorOperator):
         tcp_keep_alive_count: int = 20,
         tcp_keep_alive_interval: int = 30,
         deferrable: bool = conf.getboolean("operators", "default_deferrable", fallback=False),
+        auth_type: type[AuthBase] | type[BasicAuth] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -122,11 +128,13 @@ class HttpSensor(BaseSensorOperator):
         self.tcp_keep_alive_interval = tcp_keep_alive_interval
         self.deferrable = deferrable
         self.request_kwargs = request_kwargs or {}
+        self.auth_type = auth_type
 
     def poke(self, context: Context) -> bool | PokeReturnValue:
         hook = HttpHook(
             method=self.method,
             http_conn_id=self.http_conn_id,
+            auth_type=self.auth_type,
             tcp_keep_alive=self.tcp_keep_alive,
             tcp_keep_alive_idle=self.tcp_keep_alive_idle,
             tcp_keep_alive_count=self.tcp_keep_alive_count,
@@ -167,6 +175,7 @@ class HttpSensor(BaseSensorOperator):
                     data=self.request_params,
                     headers=self.headers,
                     method=self.method,
+                    auth_type=serialize_auth_type(resolve_auth_type(self.auth_type, self.http_conn_id)),
                     extra_options=self.extra_options,
                     poke_interval=self.poke_interval,
                 ),
