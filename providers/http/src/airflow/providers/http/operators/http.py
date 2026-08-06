@@ -20,7 +20,6 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
-from aiohttp import BasicAuth
 from requests import Response
 
 from airflow.providers.common.compat.sdk import (
@@ -30,10 +29,12 @@ from airflow.providers.common.compat.sdk import (
     conf,
     determine_kwargs,
 )
-from airflow.providers.http.triggers.http import HttpResponseSerializer, HttpTrigger, serialize_auth_type
+from airflow.providers.http.auth_helpers import resolve_auth_type, serialize_auth_type
+from airflow.providers.http.triggers.http import HttpResponseSerializer, HttpTrigger
 from airflow.utils.helpers import merge_dicts
 
 if TYPE_CHECKING:
+    from aiohttp import BasicAuth
     from requests.auth import AuthBase
 
     from airflow.providers.http.hooks.http import HttpHook
@@ -270,17 +271,7 @@ class HttpOperator(BaseOperator):
 
         :return: The resolved authentication type class, or None if no auth is needed.
         """
-        if self.auth_type is not None:
-            return self.auth_type
-
-        try:
-            conn = BaseHook.get_connection(self.http_conn_id)
-            if conn.login or conn.password:
-                return BasicAuth
-        except Exception as e:
-            self.log.warning("Failed to resolve auth type from connection: %s", e)
-
-        return None
+        return resolve_auth_type(self.auth_type, self.http_conn_id)
 
     def process_response(self, context: Context, response: Response | list[Response]) -> Any:
         """Process the response."""
