@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import and_, select
 from sqlalchemy.orm import joinedload
 
@@ -109,7 +109,9 @@ XComEntryOptionsDep = Annotated[XComEntryOptions, Depends(_get_xcom_entry_option
             status.HTTP_409_CONFLICT,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.XCOM))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.XCOM), scopes=["GET"])
+    ],
 )
 def get_xcom_entry(
     dag_id: str,
@@ -180,7 +182,9 @@ def get_xcom_entry(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.XCOM))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.XCOM), scopes=["GET"])
+    ],
 )
 def get_xcom_entries(
     dag_id: str,
@@ -339,7 +343,7 @@ def get_xcom_entries(
     ),
     dependencies=[
         Depends(action_logging()),
-        Depends(requires_access_dag(method="POST", access_entity=DagAccessEntity.XCOM)),
+        Security(requires_access_dag(method="POST", access_entity=DagAccessEntity.XCOM), scopes=["POST"]),
     ],
 )
 def create_xcom_entry(
@@ -444,7 +448,7 @@ def create_xcom_entry(
     ),
     dependencies=[
         Depends(action_logging()),
-        Depends(requires_access_dag(method="PUT", access_entity=DagAccessEntity.XCOM)),
+        Security(requires_access_dag(method="PUT", access_entity=DagAccessEntity.XCOM), scopes=["PUT"]),
     ],
 )
 def update_xcom_entry(
@@ -526,7 +530,7 @@ def update_xcom_entry(
     ),
     dependencies=[
         Depends(action_logging()),
-        Depends(requires_access_dag(method="DELETE", access_entity=DagAccessEntity.XCOM)),
+        Security(requires_access_dag(method="DELETE", access_entity=DagAccessEntity.XCOM), scopes=["DELETE"]),
     ],
 )
 def delete_xcom_entry(

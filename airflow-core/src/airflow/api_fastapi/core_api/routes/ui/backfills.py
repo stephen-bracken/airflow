@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, status
+from fastapi import Depends, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -50,7 +50,7 @@ backfills_router = AirflowRouter(tags=["Backfill"], prefix="/backfills")
     path="",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_backfill(method="GET")),
+        Security(requires_access_backfill(method="GET"), scopes=["GET"]),
     ],
 )
 def list_backfills_ui(

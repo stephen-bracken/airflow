@@ -376,7 +376,7 @@ def extract_from_file(path: pathlib.Path) -> list[PermissionEntry]:
                         if isinstance(dep_item.func, ast.Name)
                         else getattr(dep_item.func, "attr", "")
                     )
-                    if dep_name != "Depends" or not dep_item.args:
+                    if dep_name not in ["Depends", "Security"] or not dep_item.args:
                         continue
 
                     inner = dep_item.args[0]

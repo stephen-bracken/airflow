@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy import or_, select
 
 from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
@@ -47,17 +47,19 @@ gantt_router = AirflowRouter(prefix="/gantt", tags=["Gantt"])
         ]
     ),
     dependencies=[
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.TASK_INSTANCE,
-            )
+            ),
+            scopes=["GET"],
         ),
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.RUN,
-            )
+            ),
+            scopes=["GET"],
         ),
     ],
 )

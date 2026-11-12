@@ -21,7 +21,7 @@ from collections.abc import Sequence
 from pathlib import PurePosixPath
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import and_, false, func, literal, select, union_all
 from sqlalchemy.orm import defaultload
 
@@ -104,10 +104,14 @@ STATE_COUNT_CAP = 1000
     "",
     response_model_exclude_none=True,
     dependencies=[
-        Depends(requires_access_dag(method="GET")),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN)),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL)),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE)),
+        Security(requires_access_dag(method="GET"), scopes=["GET"]),
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"]),
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL), scopes=["GET"]
+        ),
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        ),
     ],
     operation_id="get_dags_ui",
 )
@@ -346,7 +350,7 @@ def get_dags(
 
 @dags_router.get(
     "/timetable_types",
-    dependencies=[Depends(requires_access_dag(method="GET"))],
+    dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])],
     operation_id="get_dag_timetable_types_ui",
 )
 def get_dag_timetable_types(
@@ -380,7 +384,7 @@ def get_dag_timetable_types(
 
 @dags_router.get(
     "/folders",
-    dependencies=[Depends(requires_access_dag(method="GET"))],
+    dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])],
     operation_id="get_dag_folders",
 )
 def get_dag_folders(
@@ -431,7 +435,9 @@ def get_dag_folders(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"])
+    ],
 )
 def get_latest_run_info(dag_id: str, session: SessionDep) -> DAGRunLightResponse | None:
     """Get latest run."""
@@ -464,8 +470,8 @@ def get_latest_run_info(dag_id: str, session: SessionDep) -> DAGRunLightResponse
 @dags_router.get(
     "/run_state_counts",
     dependencies=[
-        Depends(requires_access_dag(method="GET")),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN)),
+        Security(requires_access_dag(method="GET"), scopes=["GET"]),
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"]),
     ],
     operation_id="get_dag_run_state_counts_ui",
 )
@@ -516,8 +522,10 @@ def get_dag_run_state_counts(
 @dags_router.get(
     "/recent_task_instance_state_counts",
     dependencies=[
-        Depends(requires_access_dag(method="GET")),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE)),
+        Security(requires_access_dag(method="GET"), scopes=["GET"]),
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        ),
     ],
     operation_id="get_recent_task_instance_state_counts_ui",
 )

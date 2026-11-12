@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated
 
-from fastapi import Depends, status
+from fastapi import Depends, Security, status
 
 from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
 from airflow.api_fastapi.common.db.common import (
@@ -57,7 +57,9 @@ dag_stats_router = AirflowRouter(tags=["DagStats"], prefix="/dagStats")
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"])
+    ],
 )
 def get_dag_stats(
     readable_dag_runs_filter: ReadableDagRunsFilterDep,

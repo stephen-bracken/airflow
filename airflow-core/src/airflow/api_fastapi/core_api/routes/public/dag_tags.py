@@ -20,7 +20,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Security
 from sqlalchemy import false, select
 
 from airflow.api_fastapi.common.db.common import (
@@ -42,7 +42,7 @@ from airflow.models.dag import DagModel, DagTag
 dag_tags_router = AirflowRouter(tags=["DAG"], prefix="/dagTags")
 
 
-@dag_tags_router.get("", dependencies=[Depends(requires_access_dag(method="GET"))])
+@dag_tags_router.get("", dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])])
 def get_dag_tags(
     limit: QueryLimit,
     offset: QueryOffset,

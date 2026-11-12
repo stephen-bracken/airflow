@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import Depends, status
+from fastapi import Security, status
 from fastapi.exceptions import HTTPException
 
 from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
@@ -49,7 +49,7 @@ dependencies_router = AirflowRouter(tags=["Dependencies"])
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag("GET", DagAccessEntity.DEPENDENCIES))],
+    dependencies=[Security(requires_access_dag("GET", DagAccessEntity.DEPENDENCIES), scopes=["GET"])],
 )
 def get_dependencies(
     session: SessionDep,

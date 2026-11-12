@@ -19,7 +19,7 @@ from __future__ import annotations
 from operator import itemgetter
 from typing import TYPE_CHECKING, Annotated, Any, TypeVar
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy import case, false, func, select
 
 from airflow.api_fastapi.common.db.common import SessionDep, paginated_select
@@ -112,7 +112,7 @@ def _serialize_bundle(
     )
 
 
-@dag_bundles_router.get("", dependencies=[Depends(requires_access_dag_bundles())])
+@dag_bundles_router.get("", dependencies=[Security(requires_access_dag_bundles(), scopes=["GET"])])
 def get_dag_bundles(
     limit: QueryLimit,
     offset: QueryOffset,
@@ -162,7 +162,7 @@ def get_dag_bundles(
 @dag_bundles_router.get(
     "/{bundle_name}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_dag_bundles())],
+    dependencies=[Security(requires_access_dag_bundles(), scopes=["GET"])],
 )
 def get_dag_bundle(
     bundle_name: str,
@@ -192,7 +192,7 @@ def get_dag_bundle(
 @dag_bundles_router.get(
     "/{bundle_name}/files",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_dag_bundles())],
+    dependencies=[Security(requires_access_dag_bundles(), scopes=["GET"])],
 )
 def get_dag_bundle_files(
     bundle_name: str,

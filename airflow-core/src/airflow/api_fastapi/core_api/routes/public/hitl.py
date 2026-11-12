@@ -21,7 +21,7 @@ from typing import Annotated, Any
 from uuid import UUID
 
 import structlog
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -165,7 +165,9 @@ def _get_task_instance_with_hitl_detail(
         ]
     ),
     dependencies=[
-        Depends(requires_access_dag(method="PUT", access_entity=DagAccessEntity.HITL_DETAIL)),
+        Security(
+            requires_access_dag(method="PUT", access_entity=DagAccessEntity.HITL_DETAIL), scopes=["PUT"]
+        ),
         Depends(action_logging()),
     ],
 )
@@ -303,7 +305,9 @@ def update_hitl_detail(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL), scopes=["GET"])
+    ],
 )
 def get_hitl_detail(
     dag_id: str,
@@ -341,7 +345,9 @@ def get_hitl_detail(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL), scopes=["GET"])
+    ],
 )
 def get_hitl_detail_try_detail(
     dag_id: str,
@@ -378,7 +384,9 @@ def get_hitl_detail_try_detail(
     "/hitlDetails",
     status_code=status.HTTP_200_OK,
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST]),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.HITL_DETAIL), scopes=["GET"])
+    ],
 )
 def get_hitl_details(
     dag_id: str,

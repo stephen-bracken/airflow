@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, Security, status
 
 from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
 from airflow.api_fastapi.common.dagbag import DagBagDep, get_latest_version_of_dag
@@ -65,7 +65,9 @@ _SORTABLE_TASK_FIELDS = {
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK), scopes=["GET"])
+    ],
 )
 def get_tasks(
     dag_id: str,
@@ -101,7 +103,9 @@ def get_tasks(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK), scopes=["GET"])
+    ],
 )
 def get_task(
     dag_id: str,

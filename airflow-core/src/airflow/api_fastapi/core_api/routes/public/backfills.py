@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Annotated, NoReturn
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import NonNegativeInt
 from sqlalchemy import select, update
@@ -90,7 +90,7 @@ def _raise_locked_response_or_reraise(e: OperationalError, action: str) -> NoRet
 @backfills_router.get(
     path="",
     dependencies=[
-        Depends(requires_access_backfill(method="GET")),
+        Security(requires_access_backfill(method="GET"), scopes=["GET"]),
     ],
 )
 def list_backfills(
@@ -120,7 +120,7 @@ def list_backfills(
     path="/{backfill_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_backfill(method="GET")),
+        Security(requires_access_backfill(method="GET"), scopes=["GET"]),
     ],
 )
 def get_backfill(
@@ -139,7 +139,7 @@ def get_backfill(
     path="/{backfill_id}/dag_runs",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_backfill(method="GET")),
+        Security(requires_access_backfill(method="GET"), scopes=["GET"]),
     ],
 )
 def list_backfill_dag_runs(
@@ -183,7 +183,7 @@ def list_backfill_dag_runs(
     ),
     dependencies=[
         Depends(action_logging()),
-        Depends(requires_access_backfill(method="PUT")),
+        Security(requires_access_backfill(method="PUT"), scopes=["PUT"]),
     ],
 )
 def pause_backfill(backfill_id: NonNegativeInt, session: SessionDep) -> BackfillResponse:
@@ -209,7 +209,7 @@ def pause_backfill(backfill_id: NonNegativeInt, session: SessionDep) -> Backfill
     ),
     dependencies=[
         Depends(action_logging()),
-        Depends(requires_access_backfill(method="PUT")),
+        Security(requires_access_backfill(method="PUT"), scopes=["PUT"]),
     ],
 )
 def unpause_backfill(backfill_id: NonNegativeInt, session: SessionDep) -> BackfillResponse:
@@ -235,7 +235,7 @@ def unpause_backfill(backfill_id: NonNegativeInt, session: SessionDep) -> Backfi
     ),
     dependencies=[
         Depends(action_logging()),
-        Depends(requires_access_backfill(method="PUT")),
+        Security(requires_access_backfill(method="PUT"), scopes=["PUT"]),
     ],
 )
 def cancel_backfill(backfill_id: NonNegativeInt, session: SessionDep) -> BackfillResponse:
@@ -288,7 +288,7 @@ def cancel_backfill(backfill_id: NonNegativeInt, session: SessionDep) -> Backfil
     ),
     dependencies=[
         Depends(action_logging()),
-        Depends(requires_access_backfill(method="POST")),
+        Security(requires_access_backfill(method="POST"), scopes=["POST"]),
     ],
 )
 def create_backfill(
@@ -372,7 +372,7 @@ def create_backfill(
         ]
     ),
     dependencies=[
-        Depends(requires_access_backfill(method="POST")),
+        Security(requires_access_backfill(method="POST"), scopes=["POST"]),
     ],
 )
 def create_backfill_dry_run(

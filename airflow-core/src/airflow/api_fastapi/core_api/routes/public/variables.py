@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import delete, select
 
 from airflow.api_fastapi.common.db.common import SessionDep, paginated_select
@@ -56,7 +56,7 @@ variables_router = AirflowRouter(tags=["Variable"], prefix="/variables")
     "/{variable_key:path}",
     status_code=status.HTTP_204_NO_CONTENT,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(action_logging()), Depends(requires_access_variable("DELETE"))],
+    dependencies=[Depends(action_logging()), Security(requires_access_variable("DELETE"), scopes=["DELETE"])],
 )
 def delete_variable(
     variable_key: str,
@@ -76,7 +76,7 @@ def delete_variable(
 @variables_router.get(
     "/{variable_key:path}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_variable("GET"))],
+    dependencies=[Security(requires_access_variable("GET"), scopes=["GET"])],
 )
 def get_variable(
     variable_key: str,
@@ -95,7 +95,7 @@ def get_variable(
 
 @variables_router.get(
     "",
-    dependencies=[Depends(requires_access_variable("GET"))],
+    dependencies=[Security(requires_access_variable("GET"), scopes=["GET"])],
 )
 def get_variables(
     limit: QueryLimit,
@@ -140,7 +140,7 @@ def get_variables(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(action_logging()), Depends(requires_access_variable("PUT"))],
+    dependencies=[Depends(action_logging()), Security(requires_access_variable("PUT"), scopes=["PUT"])],
 )
 def patch_variable(
     variable_key: str,
@@ -166,7 +166,7 @@ def patch_variable(
     "",
     status_code=status.HTTP_201_CREATED,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]),
-    dependencies=[Depends(action_logging()), Depends(requires_access_variable("POST"))],
+    dependencies=[Depends(action_logging()), Security(requires_access_variable("POST"), scopes=["POST"])],
 )
 def post_variable(
     post_body: VariableBody,
@@ -187,7 +187,11 @@ def post_variable(
 
 
 @variables_router.patch(
-    "", dependencies=[Depends(action_logging()), Depends(requires_access_variable_bulk())]
+    "",
+    dependencies=[
+        Depends(action_logging()),
+        Security(requires_access_variable_bulk(), scopes=["GET", "POST", "PUT", "DELETE"]),
+    ],
 )
 def bulk_variables(
     request: BulkBody[VariableBody],

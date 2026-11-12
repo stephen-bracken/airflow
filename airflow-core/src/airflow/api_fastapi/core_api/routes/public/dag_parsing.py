@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from fastapi import Depends, Request, status
+from fastapi import Depends, Request, Security, status
 from itsdangerous import URLSafeSerializer
 from sqlalchemy import update
 from sqlalchemy.engine import CursorResult
@@ -37,7 +37,10 @@ dag_parsing_router = AirflowRouter(tags=["DAG Parsing"], prefix="/parseDagFile/{
     "",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(requires_access_dag_from_file_token(method="PUT")), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_dag_from_file_token(method="PUT"), scopes=["PUT"]),
+        Depends(action_logging()),
+    ],
 )
 def reparse_dag_file(file_token: str, session: SessionDep, request: Request) -> None:
     """Request re-parsing a Dag file."""

@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy import select
 
 from airflow._shared.state import AssetScope, AssetStateStoreWriterKind
@@ -60,7 +60,7 @@ AssetIdDep = Annotated[int, Depends(_get_asset_or_404)]
 @asset_state_store_router.get(
     "",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="GET"))],
+    dependencies=[Security(requires_access_asset(method="GET"), scopes=["GET"])],
 )
 def list_asset_state_store(
     asset_id: AssetIdDep,
@@ -123,7 +123,7 @@ def list_asset_state_store(
 @asset_state_store_router.get(
     "/{key:path}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="GET"))],
+    dependencies=[Security(requires_access_asset(method="GET"), scopes=["GET"])],
 )
 def get_asset_state_store(
     asset_id: AssetIdDep,
@@ -179,7 +179,7 @@ def get_asset_state_store(
     "/{key:path}",
     status_code=status.HTTP_204_NO_CONTENT,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="PUT"))],
+    dependencies=[Security(requires_access_asset(method="PUT"), scopes=["PUT"])],
 )
 def set_asset_state_store(
     asset_id: AssetIdDep,
@@ -201,7 +201,7 @@ def set_asset_state_store(
     "/{key:path}",
     status_code=status.HTTP_204_NO_CONTENT,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="DELETE"))],
+    dependencies=[Security(requires_access_asset(method="DELETE"), scopes=["DELETE"])],
 )
 def delete_asset_state_store(
     asset_id: AssetIdDep,
@@ -216,7 +216,7 @@ def delete_asset_state_store(
     "",
     status_code=status.HTTP_204_NO_CONTENT,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="DELETE"))],
+    dependencies=[Security(requires_access_asset(method="DELETE"), scopes=["DELETE"])],
 )
 def clear_asset_state_store(
     asset_id: AssetIdDep,

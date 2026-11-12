@@ -21,7 +21,7 @@ import datetime
 import textwrap
 from typing import Annotated, Literal, cast
 
-from fastapi import Depends, HTTPException, Query, Request, status
+from fastapi import Depends, HTTPException, Query, Request, Security, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import StreamingResponse
 from pydantic import ValidationError
@@ -140,7 +140,9 @@ dag_run_at_dag_router = AirflowRouter(tags=["DagRun"], prefix="/dags/{dag_id}")
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"])
+    ],
 )
 def get_dag_run(dag_id: str, dag_run_id: str, session: SessionDep) -> DAGRunResponse:
     dag_run = session.scalar(
@@ -167,7 +169,7 @@ def get_dag_run(dag_id: str, dag_run_id: str, session: SessionDep) -> DAGRunResp
         ],
     ),
     dependencies=[
-        Depends(requires_access_dag(method="DELETE", access_entity=DagAccessEntity.RUN)),
+        Security(requires_access_dag(method="DELETE", access_entity=DagAccessEntity.RUN), scopes=["DELETE"]),
         Depends(action_logging()),
     ],
 )
@@ -202,7 +204,7 @@ def delete_dag_run(dag_id: str, dag_run_id: str, session: SessionDep):
         ],
     ),
     dependencies=[
-        Depends(requires_access_dag(method="PUT", access_entity=DagAccessEntity.RUN)),
+        Security(requires_access_dag(method="PUT", access_entity=DagAccessEntity.RUN), scopes=["PUT"]),
         Depends(action_logging()),
     ],
 )
@@ -256,7 +258,10 @@ def patch_dag_run(
 
 @dag_run_router.patch(
     "",
-    dependencies=[Depends(requires_access_dag_run_bulk()), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_dag_run_bulk(), scopes=["GET", "POST", "PUT", "DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def bulk_dag_runs(
     request: BulkBody[BulkDAGRunBody],
@@ -279,8 +284,8 @@ def bulk_dag_runs(
         ]
     ),
     dependencies=[
-        Depends(requires_access_asset(method="GET")),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN)),
+        Security(requires_access_asset(method="GET"), scopes=["GET"]),
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"]),
     ],
 )
 def get_upstream_asset_events(
@@ -324,7 +329,7 @@ def get_upstream_asset_events(
     "/{dag_run_id}/clear",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_dag(method="PUT", access_entity=DagAccessEntity.RUN)),
+        Security(requires_access_dag(method="PUT", access_entity=DagAccessEntity.RUN), scopes=["PUT"]),
         Depends(action_logging()),
     ],
 )
@@ -370,7 +375,10 @@ def clear_dag_run(
 @dag_run_at_dag_router.post(
     "/clearDagRuns",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_dag_run_clear_bulk()), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_dag_run_clear_bulk(), scopes=["GET", "POST", "PUT", "DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def clear_dag_runs(
     dag_id: str,
@@ -479,7 +487,7 @@ def clear_dag_runs(
     "/clearPartitions",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_dag(method="PUT", access_entity=DagAccessEntity.RUN)),
+        Security(requires_access_dag(method="PUT", access_entity=DagAccessEntity.RUN), scopes=["PUT"]),
         Depends(action_logging()),
     ],
 )
@@ -512,7 +520,9 @@ def clear_dag_run_partitions(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"])
+    ],
 )
 def get_dag_runs(
     dag_id: str,
@@ -775,7 +785,7 @@ def get_dag_runs(
         ]
     ),
     dependencies=[
-        Depends(requires_access_dag(method="POST", access_entity=DagAccessEntity.RUN)),
+        Security(requires_access_dag(method="POST", access_entity=DagAccessEntity.RUN), scopes=["POST"]),
         Depends(action_logging()),
     ],
 )
@@ -900,7 +910,9 @@ def trigger_dag_run(
             },
         },
     },
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"])
+    ],
 )
 def wait_dag_run_until_finished(
     dag_id: str,
@@ -956,7 +968,9 @@ def wait_dag_run_until_finished(
 @dag_run_router.post(
     "/list",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"])
+    ],
 )
 def get_list_dag_runs_batch(
     dag_id: Literal["~"],

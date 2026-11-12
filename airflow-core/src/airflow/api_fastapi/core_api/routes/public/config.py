@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import textwrap
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, Security, status
 
 from airflow.api_fastapi.common.headers import HeaderAcceptJsonOrText
 from airflow.api_fastapi.common.router import AirflowRouter
@@ -89,7 +89,7 @@ config_router = AirflowRouter(tags=["Config"], prefix="/config")
         },
     },
     response_model=Config,
-    dependencies=[Depends(requires_access_configuration("GET"))],
+    dependencies=[Security(requires_access_configuration("GET"), scopes=["GET"])],
 )
 def get_config(
     accept: HeaderAcceptJsonOrText,
@@ -137,7 +137,7 @@ def get_config(
         },
     },
     response_model=Config,
-    dependencies=[Depends(requires_access_configuration("GET"))],
+    dependencies=[Security(requires_access_configuration("GET"), scopes=["GET"])],
 )
 def get_config_value(
     section: str,

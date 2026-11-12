@@ -21,7 +21,7 @@ from itertools import groupby
 from operator import itemgetter
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy import and_, func, or_, select
 
 from airflow.api_fastapi.app import get_auth_manager
@@ -66,7 +66,7 @@ import_error_router = AirflowRouter(tags=["Import Error"], prefix="/importErrors
     "/{import_error_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_view(AccessView.IMPORT_ERRORS)),
+        Security(requires_access_view(AccessView.IMPORT_ERRORS), scopes=["GET"]),
     ],
 )
 def get_import_error(
@@ -133,7 +133,7 @@ def get_import_error(
 @import_error_router.get(
     "",
     dependencies=[
-        Depends(requires_access_view(AccessView.IMPORT_ERRORS)),
+        Security(requires_access_view(AccessView.IMPORT_ERRORS), scopes=["GET"]),
     ],
 )
 def get_import_errors(

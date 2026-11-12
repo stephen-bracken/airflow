@@ -19,7 +19,7 @@ from __future__ import annotations
 from decimal import ROUND_FLOOR, Context
 from typing import TYPE_CHECKING, cast
 
-from fastapi import Depends, status
+from fastapi import Security, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.sql.expression import case, false
 
@@ -81,8 +81,10 @@ def _compute_state_counts(
     "/historical_metrics_data",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST]),
     dependencies=[
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE)),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN)),
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        ),
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"]),
     ],
 )
 def historical_metrics(
@@ -133,7 +135,7 @@ def historical_metrics(
 
 @dashboard_router.get(
     "/dag_stats",
-    dependencies=[Depends(requires_access_dag(method="GET"))],
+    dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])],
 )
 def dag_stats(
     session: SessionDep,

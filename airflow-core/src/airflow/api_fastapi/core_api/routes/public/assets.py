@@ -21,7 +21,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Annotated, cast
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import and_, delete, exists, func, select
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import joinedload, subqueryload
@@ -245,8 +245,8 @@ class OnlyActiveFilter(BaseParam[bool]):
     "/assets",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_asset(method="GET")),
-        Depends(requires_access_asset_alias(method="GET")),
+        Security(requires_access_asset(method="GET"), scopes=["GET"]),
+        Security(requires_access_asset_alias(method="GET"), scopes=["GET"]),
     ],
 )
 def get_assets(
@@ -350,7 +350,7 @@ def get_assets(
 @assets_router.get(
     "/assets/aliases",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset_alias(method="GET"))],
+    dependencies=[Security(requires_access_asset_alias(method="GET"), scopes=["GET"])],
 )
 def get_asset_aliases(
     limit: QueryLimit,

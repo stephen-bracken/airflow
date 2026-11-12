@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, Annotated, Any
 from uuid import UUID
 
 import structlog
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import exists, func, or_, select
 from sqlalchemy.orm import Session, joinedload, load_only
@@ -133,8 +133,10 @@ def _get_serdag(
     "/structure/{dag_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE)),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN)),
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        ),
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"]),
     ],
     response_model_exclude_none=True,
 )
@@ -283,17 +285,19 @@ def get_dag_structure(
         ]
     ),
     dependencies=[
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.TASK_INSTANCE,
-            )
+            ),
+            scopes=["GET"],
         ),
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.RUN,
-            )
+            ),
+            scopes=["GET"],
         ),
     ],
     response_model_exclude_none=True,
@@ -548,17 +552,19 @@ def _build_ti_summaries(
         },
     },
     dependencies=[
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.TASK_INSTANCE,
-            )
+            ),
+            scopes=["GET"],
         ),
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.RUN,
-            )
+            ),
+            scopes=["GET"],
         ),
     ],
 )
@@ -683,8 +689,10 @@ def get_grid_ti_summaries_stream(
     "/loop/{dag_id}/{run_id}/{group_id}",
     responses=create_openapi_http_exception_doc([404, 422]),
     dependencies=[
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE)),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN)),
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        ),
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"]),
     ],
 )
 def get_loop_summary(
@@ -708,8 +716,10 @@ def get_loop_summary(
     "/loop-history/{dag_id}/{group_id}",
     responses=create_openapi_http_exception_doc([404]),
     dependencies=[
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE)),
-        Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN)),
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        ),
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"]),
     ],
 )
 def get_loop_history(

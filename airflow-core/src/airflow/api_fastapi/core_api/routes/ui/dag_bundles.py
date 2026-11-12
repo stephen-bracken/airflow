@@ -16,7 +16,7 @@
 # under the License.
 from __future__ import annotations
 
-from fastapi import Depends
+from fastapi import Security
 from sqlalchemy import exists, select
 
 from airflow.api_fastapi.common.db.common import SessionDep
@@ -36,7 +36,7 @@ from airflow.models.errors import ParseImportError
 dag_bundles_router = AirflowRouter(tags=["Dag Bundle"], prefix="/dagBundles")
 
 
-@dag_bundles_router.get("/count", dependencies=[Depends(requires_access_dag(method="GET"))])
+@dag_bundles_router.get("/count", dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])])
 def get_dag_bundle_count(
     readable_dags_filter: ReadableDagsFilterDep,
     user: GetUserDep,

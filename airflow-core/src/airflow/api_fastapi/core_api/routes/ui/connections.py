@@ -16,7 +16,7 @@
 # under the License.
 from __future__ import annotations
 
-from fastapi import Depends
+from fastapi import Security
 
 from airflow.api_fastapi.common.router import AirflowRouter
 from airflow.api_fastapi.core_api.datamodels.connections import ConnectionHookMetaData
@@ -28,7 +28,7 @@ connections_router = AirflowRouter(tags=["Connection"], prefix="/connections")
 
 @connections_router.get(
     "/hook_meta",
-    dependencies=[Depends(requires_access_connection(method="GET"))],
+    dependencies=[Security(requires_access_connection(method="GET"), scopes=["GET"])],
 )
 def hook_meta_data() -> list[ConnectionHookMetaData]:
     """Retrieve information about available connection types (hook classes) and their parameters."""

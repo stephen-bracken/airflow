@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated, Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy.sql import select
 
 from airflow import plugins_manager
@@ -67,7 +67,7 @@ def _find_operator_link(task: SerializedOperator, link_name: str) -> Any:
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag("GET", DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[Security(requires_access_dag("GET", DagAccessEntity.TASK_INSTANCE), scopes=["GET"])],
     tags=["Task Instance"],
 )
 def get_extra_links(

@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, Security, status
 from sqlalchemy import select
 
 from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
@@ -36,7 +36,9 @@ dag_runs_router = AirflowRouter(prefix="/dags/{dag_id}/dagRuns", tags=["DagRun"]
 @dag_runs_router.get(
     "/{dag_run_id}/stats",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.RUN), scopes=["GET"])
+    ],
 )
 def get_dag_run_stats(dag_id: str, dag_run_id: str, session: SessionDep) -> DagRunStatsResponse:
     """Get duration statistics for a DAG based on its historical completed runs."""

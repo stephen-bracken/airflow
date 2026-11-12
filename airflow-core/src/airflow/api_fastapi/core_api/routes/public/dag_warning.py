@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Security
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -47,7 +47,9 @@ dag_warning_router = AirflowRouter(tags=["DagWarning"])
 
 @dag_warning_router.get(
     "/dagWarnings",
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.WARNING))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.WARNING), scopes=["GET"])
+    ],
 )
 def list_dag_warnings(
     dag_id: Annotated[FilterParam[str | None], Depends(filter_param_factory(DagWarning.dag_id, str | None))],

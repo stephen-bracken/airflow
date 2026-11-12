@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -63,7 +63,9 @@ dag_versions_router = AirflowRouter(tags=["DagVersion"], prefix="/dags/{dag_id}/
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.VERSION))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.VERSION), scopes=["GET"])
+    ],
     tags=["experimental"],
     summary="Experimental: Compare what two stored versions of a Dag currently hold.",
     # An explicit description wins over the docstring, so the disclosure rules have to be
@@ -148,7 +150,9 @@ def get_dag_version_diff(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.VERSION))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.VERSION), scopes=["GET"])
+    ],
 )
 def get_dag_version(
     dag_id: str,
@@ -178,7 +182,9 @@ def get_dag_version(
             status.HTTP_404_NOT_FOUND,
         ],
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.VERSION))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.VERSION), scopes=["GET"])
+    ],
 )
 def get_dag_versions(
     dag_id: str,

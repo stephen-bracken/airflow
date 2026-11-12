@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Annotated, cast
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import delete, select
 from sqlalchemy.engine import CursorResult
 
@@ -60,7 +60,10 @@ pools_router = AirflowRouter(tags=["Pool"], prefix="/pools")
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_pool(method="DELETE")), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_pool(method="DELETE"), scopes=["DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def delete_pool(
     pool_name: str,
@@ -79,7 +82,7 @@ def delete_pool(
 @pools_router.get(
     "/{pool_name:path}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_pool(method="GET"))],
+    dependencies=[Security(requires_access_pool(method="GET"), scopes=["GET"])],
 )
 def get_pool(
     pool_name: str,
@@ -95,7 +98,7 @@ def get_pool(
 
 @pools_router.get(
     "",
-    dependencies=[Depends(requires_access_pool(method="GET"))],
+    dependencies=[Security(requires_access_pool(method="GET"), scopes=["GET"])],
 )
 def get_pools(
     limit: QueryLimit,
@@ -135,7 +138,7 @@ def get_pools(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_pool(method="PUT")), Depends(action_logging())],
+    dependencies=[Security(requires_access_pool(method="PUT"), scopes=["PUT"]), Depends(action_logging())],
 )
 def patch_pool(
     pool_name: str,
@@ -168,7 +171,7 @@ def patch_pool(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_409_CONFLICT]
     ),  # handled by global exception handler
-    dependencies=[Depends(requires_access_pool(method="POST")), Depends(action_logging())],
+    dependencies=[Security(requires_access_pool(method="POST"), scopes=["POST"]), Depends(action_logging())],
 )
 def post_pool(
     body: PoolBody,
@@ -182,7 +185,10 @@ def post_pool(
 
 @pools_router.patch(
     "",
-    dependencies=[Depends(requires_access_pool_bulk()), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_pool_bulk(), scopes=["GET", "POST", "PUT", "DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def bulk_pools(
     request: BulkBody[PoolBody],

@@ -23,7 +23,7 @@ from typing import Annotated, Literal, cast
 from uuid import UUID
 
 import structlog
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -169,7 +169,11 @@ task_instances_prefix = "/dagRuns/{dag_run_id}/taskInstances"
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        )
+    ],
 )
 def get_task_instance(
     dag_id: str,
@@ -210,7 +214,11 @@ def get_task_instance(
 @task_instances_router.get(
     task_instances_prefix + "/{task_id}/listMapped",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        )
+    ],
 )
 def get_mapped_task_instances(
     dag_id: str,
@@ -372,7 +380,11 @@ def get_mapped_task_instances(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        )
+    ],
     operation_id="get_task_instance_dependencies",
 )
 @task_instances_router.get(
@@ -380,7 +392,11 @@ def get_mapped_task_instances(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        )
+    ],
     operation_id="get_task_instance_dependencies_by_map_index",
 )
 def get_task_instance_dependencies(

@@ -18,7 +18,7 @@
 from __future__ import annotations
 
 import structlog
-from fastapi import Depends
+from fastapi import Security
 from pydantic import ValidationError
 
 from airflow import plugins_manager
@@ -41,7 +41,7 @@ plugins_router = AirflowRouter(tags=["Plugin"], prefix="/plugins")
 
 @plugins_router.get(
     "",
-    dependencies=[Depends(requires_access_view(AccessView.PLUGINS))],
+    dependencies=[Security(requires_access_view(AccessView.PLUGINS), scopes=["GET"])],
 )
 def get_plugins(
     limit: QueryLimit,
@@ -86,7 +86,7 @@ def get_plugins(
 
 @plugins_router.get(
     "/importErrors",
-    dependencies=[Depends(requires_access_view(AccessView.PLUGINS))],
+    dependencies=[Security(requires_access_view(AccessView.PLUGINS), scopes=["GET"])],
 )
 def import_errors() -> PluginImportErrorCollectionResponse:
     import_errors = plugins_manager.get_import_errors()

@@ -16,7 +16,7 @@
 # under the License.
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, Response, status
+from fastapi import HTTPException, Response, Security, status
 from sqlalchemy import select
 
 from airflow.api_fastapi.app import get_auth_manager
@@ -53,7 +53,9 @@ dag_sources_router = AirflowRouter(tags=["DagSource"], prefix="/dagSources")
         },
     },
     response_model=DAGSourceResponse,
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.CODE))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.CODE), scopes=["GET"])
+    ],
 )
 def get_dag_source(
     accept: HeaderAcceptJsonOrText,

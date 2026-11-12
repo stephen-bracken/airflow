@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Query, Response, status
+from fastapi import Depends, HTTPException, Query, Response, Security, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from sqlalchemy import delete, func, insert, select, update
@@ -95,7 +95,7 @@ from airflow.utils.state import DagRunState, DagSchedulingState
 dags_router = AirflowRouter(tags=["DAG"], prefix="/dags")
 
 
-@dags_router.get("", dependencies=[Depends(requires_access_dag(method="GET"))])
+@dags_router.get("", dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])])
 def get_dags(
     limit: QueryLimit,
     offset: QueryOffset,
@@ -215,7 +215,7 @@ def get_dags(
             HTTP_422_UNPROCESSABLE_CONTENT,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET"))],
+    dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])],
 )
 def get_dag(
     dag_id: str,
@@ -243,7 +243,7 @@ def get_dag(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET"))],
+    dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"])],
 )
 def get_dag_details(
     dag_id: str,
@@ -306,7 +306,10 @@ def get_dag_details(
 @dags_router.patch(
     # Declared before "/{dag_id}" so this literal segment isn't shadowed by that path param.
     "/bulk",
-    dependencies=[Depends(requires_access_dag_bulk()), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_dag_bulk(), scopes=["GET", "POST", "PUT", "DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def bulk_dags(request: BulkBody[BulkDAGBody], session: SessionDep) -> BulkResponse:
     """Bulk pause, resume, or drain Dags by id."""
@@ -321,7 +324,7 @@ def bulk_dags(request: BulkBody[BulkDAGBody], session: SessionDep) -> BulkRespon
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="PUT")), Depends(action_logging())],
+    dependencies=[Security(requires_access_dag(method="PUT"), scopes=["PUT"]), Depends(action_logging())],
 )
 def patch_dag(
     dag_id: str,
@@ -372,7 +375,7 @@ def patch_dag(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="PUT")), Depends(action_logging())],
+    dependencies=[Security(requires_access_dag(method="PUT"), scopes=["PUT"]), Depends(action_logging())],
 )
 def patch_dags(
     patch_body: DAGPatchBody,
@@ -463,7 +466,7 @@ def patch_dags(
     "/{dag_id}/favorite",
     status_code=status.HTTP_204_NO_CONTENT,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]),
-    dependencies=[Depends(requires_access_dag(method="GET")), Depends(action_logging())],
+    dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"]), Depends(action_logging())],
 )
 def favorite_dag(dag_id: str, session: SessionDep, user: GetUserDep):
     """Mark the Dag as favorite."""
@@ -492,7 +495,7 @@ def favorite_dag(dag_id: str, session: SessionDep, user: GetUserDep):
     "/{dag_id}/unfavorite",
     status_code=status.HTTP_204_NO_CONTENT,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]),
-    dependencies=[Depends(requires_access_dag(method="GET")), Depends(action_logging())],
+    dependencies=[Security(requires_access_dag(method="GET"), scopes=["GET"]), Depends(action_logging())],
 )
 def unfavorite_dag(dag_id: str, session: SessionDep, user: GetUserDep):
     """Unmark the Dag as favorite."""
@@ -532,7 +535,10 @@ def unfavorite_dag(dag_id: str, session: SessionDep, user: GetUserDep):
             HTTP_422_UNPROCESSABLE_CONTENT,
         ]
     ),
-    dependencies=[Depends(requires_access_dag(method="DELETE")), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_dag(method="DELETE"), scopes=["DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def delete_dag(
     dag_id: str,

@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, Any, cast
 
 import structlog
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy import ColumnElement, and_, case, exists, func, select, true
 
 from airflow.api_fastapi.common.asset_expression import redact_asset_expression
@@ -79,8 +79,8 @@ assets_router = AirflowRouter(tags=["Asset"])
 @assets_router.get(
     "/assets",
     dependencies=[
-        Depends(requires_access_asset(method="GET")),
-        Depends(requires_access_asset_alias(method="GET")),
+        Security(requires_access_asset(method="GET"), scopes=["GET"]),
+        Security(requires_access_asset_alias(method="GET"), scopes=["GET"]),
     ],
     operation_id="get_assets_ui",
 )
@@ -158,7 +158,10 @@ def get_assets(
 @assets_router.get(
     "/next_run_assets/{dag_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="GET")), Depends(requires_access_dag(method="GET"))],
+    dependencies=[
+        Security(requires_access_asset(method="GET"), scopes=["GET"]),
+        Security(requires_access_dag(method="GET"), scopes=["GET"]),
+    ],
 )
 def next_run_assets(
     dag_id: str,

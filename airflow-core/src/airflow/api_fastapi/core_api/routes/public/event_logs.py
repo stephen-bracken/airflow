@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -81,7 +81,7 @@ def _eager_load_display_names() -> tuple[LoaderOption, ...]:
 @event_logs_router.get(
     "/{event_log_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_event_log("GET"))],
+    dependencies=[Security(requires_access_event_log("GET"), scopes=["GET"])],
 )
 def get_event_log(
     event_log_id: int,
@@ -105,7 +105,7 @@ def get_event_log(
 @event_logs_router.get(
     "",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST]),
-    dependencies=[Depends(requires_access_event_log("GET"))],
+    dependencies=[Security(requires_access_event_log("GET"), scopes=["GET"])],
 )
 def get_event_logs(
     limit: QueryLimit,

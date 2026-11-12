@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, NamedTuple, TypeAlias, cast
 
 import structlog
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, Security, status
 from sqlalchemy import and_, select
 
 from airflow.api_fastapi.common.asset_expression import redact_asset_expression
@@ -246,7 +246,7 @@ def _build_response(row, required_count: int, received_count: int) -> Partitione
 @partitioned_dag_runs_router.get(
     "/partitioned_dag_runs",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="GET"))],
+    dependencies=[Security(requires_access_asset(method="GET"), scopes=["GET"])],
 )
 def get_partitioned_dag_runs(
     session: SessionDep,
@@ -371,7 +371,10 @@ def get_partitioned_dag_runs(
 @partitioned_dag_runs_router.get(
     "/pending_partitioned_dag_run/{dag_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_asset(method="GET")), Depends(requires_access_dag(method="GET"))],
+    dependencies=[
+        Security(requires_access_asset(method="GET"), scopes=["GET"]),
+        Security(requires_access_dag(method="GET"), scopes=["GET"]),
+    ],
 )
 def get_pending_partitioned_dag_run(
     dag_id: str,

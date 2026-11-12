@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import contains_eager, defer, selectinload
 
@@ -180,7 +180,7 @@ def _build_response(
 @triggers_router.get(
     "",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST]),
-    dependencies=[Depends(requires_access_trigger(method="GET"))],
+    dependencies=[Security(requires_access_trigger(method="GET"), scopes=["GET"])],
 )
 def get_triggers(
     limit: QueryLimit,
@@ -259,7 +259,7 @@ def get_triggers(
 @triggers_router.get(
     "/{trigger_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_trigger(method="GET"))],
+    dependencies=[Security(requires_access_trigger(method="GET"), scopes=["GET"])],
 )
 def get_trigger(
     trigger_id: int,

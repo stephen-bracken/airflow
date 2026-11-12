@@ -16,7 +16,7 @@
 # under the License.
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -43,8 +43,8 @@ structure_router = AirflowRouter(tags=["Structure"], prefix="/structure")
         ]
     ),
     dependencies=[
-        Depends(requires_access_dag("GET")),
-        Depends(requires_access_dag("GET", DagAccessEntity.TASK_INSTANCE)),
+        Security(requires_access_dag("GET"), scopes=["GET"]),
+        Security(requires_access_dag("GET", DagAccessEntity.TASK_INSTANCE), scopes=["GET"]),
     ],
 )
 def structure_data(

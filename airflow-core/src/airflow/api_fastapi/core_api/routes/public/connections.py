@@ -20,7 +20,7 @@ import json
 import os
 from typing import TYPE_CHECKING, Annotated, Any
 
-from fastapi import Depends, Header, HTTPException, Query, status
+from fastapi import Depends, Header, HTTPException, Query, Security, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -142,7 +142,10 @@ def _supplies_own_credentials(test_body: ConnectionBody) -> bool:
     "/{connection_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_connection(method="DELETE")), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_connection(method="DELETE"), scopes=["DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def delete_connection(
     connection_id: str,
@@ -199,7 +202,7 @@ def get_connection_test(
 @connections_router.get(
     "/{connection_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_connection(method="GET"))],
+    dependencies=[Security(requires_access_connection(method="GET"), scopes=["GET"])],
 )
 def get_connection(
     connection_id: str,
@@ -219,7 +222,7 @@ def get_connection(
 @connections_router.get(
     "",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_connection(method="GET"))],
+    dependencies=[Security(requires_access_connection(method="GET"), scopes=["GET"])],
 )
 def get_connections(
     limit: QueryLimit,
@@ -263,7 +266,10 @@ def get_connections(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_409_CONFLICT]
     ),  # handled by global exception handler
-    dependencies=[Depends(requires_access_connection(method="POST")), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_connection(method="POST"), scopes=["POST"]),
+        Depends(action_logging()),
+    ],
 )
 def post_connection(
     post_body: ConnectionBody,
@@ -276,7 +282,11 @@ def post_connection(
 
 
 @connections_router.patch(
-    "", dependencies=[Depends(requires_access_connection_bulk()), Depends(action_logging())]
+    "",
+    dependencies=[
+        Security(requires_access_connection_bulk(), scopes=["GET", "POST", "PUT", "DELETE"]),
+        Depends(action_logging()),
+    ],
 )
 def bulk_connections(
     request: BulkBody[ConnectionBody],
@@ -294,7 +304,10 @@ def bulk_connections(
             status.HTTP_404_NOT_FOUND,
         ]
     ),
-    dependencies=[Depends(requires_access_connection(method="PUT")), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_connection(method="PUT"), scopes=["PUT"]),
+        Depends(action_logging()),
+    ],
 )
 def patch_connection(
     connection_id: str,
@@ -330,7 +343,7 @@ def patch_connection(
 @connections_router.post(
     "/test",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST]),
-    dependencies=[Depends(requires_access_connection(method="POST"))],
+    dependencies=[Security(requires_access_connection(method="POST"), scopes=["POST"])],
 )
 def test_connection(
     test_body: ConnectionBody,
@@ -505,7 +518,10 @@ def enqueue_connection_test(
 @connections_router.post(
     "/defaults",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(requires_access_connection(method="POST")), Depends(action_logging())],
+    dependencies=[
+        Security(requires_access_connection(method="POST"), scopes=["POST"]),
+        Depends(action_logging()),
+    ],
 )
 def create_default_connections(
     session: SessionDep,

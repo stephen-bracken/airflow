@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, status
+from fastapi import Depends, Security, status
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -51,7 +51,7 @@ job_router = AirflowRouter(tags=["Job"], prefix="/jobs")
 @job_router.get(
     "",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST]),
-    dependencies=[Depends(requires_access_view(AccessView.JOBS))],
+    dependencies=[Security(requires_access_view(AccessView.JOBS), scopes=["GET"])],
 )
 def get_jobs(
     start_date_range: Annotated[

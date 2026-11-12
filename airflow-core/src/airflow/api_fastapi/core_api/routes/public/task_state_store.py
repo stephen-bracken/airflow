@@ -21,7 +21,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Annotated, Literal
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, Query, Security, status
 from sqlalchemy import select
 
 from airflow._shared.state import TaskScope
@@ -186,7 +186,11 @@ def _resolve_expires_at(expires_at: datetime | None | Literal["default"]) -> dat
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        )
+    ],
 )
 def list_task_state_store(
     scope: TaskScopeDep,
@@ -234,7 +238,11 @@ def list_task_state_store(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["GET"]
+        )
+    ],
 )
 def get_task_state_store(
     scope: TaskScopeDep,
@@ -273,7 +281,11 @@ def get_task_state_store(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="PUT", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="PUT", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["PUT"]
+        )
+    ],
 )
 def set_task_state_store(
     scope: ValidatedTaskScopeDep,
@@ -295,7 +307,11 @@ def set_task_state_store(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="PUT", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="PUT", access_entity=DagAccessEntity.TASK_INSTANCE), scopes=["PUT"]
+        )
+    ],
 )
 def patch_task_state_store(
     scope: ValidatedTaskScopeDep,
@@ -335,7 +351,12 @@ def patch_task_state_store(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="DELETE", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="DELETE", access_entity=DagAccessEntity.TASK_INSTANCE),
+            scopes=["DELETE"],
+        )
+    ],
 )
 def delete_task_state_store(
     scope: ValidatedTaskScopeDep,
@@ -352,7 +373,12 @@ def delete_task_state_store(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag(method="DELETE", access_entity=DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[
+        Security(
+            requires_access_dag(method="DELETE", access_entity=DagAccessEntity.TASK_INSTANCE),
+            scopes=["DELETE"],
+        )
+    ],
 )
 def clear_task_state_store(
     scope: ValidatedClearTaskScopeDep,

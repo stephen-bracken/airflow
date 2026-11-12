@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import HTTPException, Query, Security, status
 from sqlalchemy import select
 
 from airflow.api_fastapi.common.db.common import SessionDep
@@ -45,7 +45,7 @@ execution_router = AirflowRouter(
 @execution_router.get(
     "/execution",
     responses=create_openapi_http_exception_doc([status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_dag("GET", DagAccessEntity.TASK_INSTANCE))],
+    dependencies=[Security(requires_access_dag("GET", DagAccessEntity.TASK_INSTANCE), scopes=["GET"])],
 )
 def get_execution(
     dag_id: str,

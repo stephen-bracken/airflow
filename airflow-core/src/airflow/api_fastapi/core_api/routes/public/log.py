@@ -21,7 +21,7 @@ import contextlib
 import textwrap
 from collections.abc import Generator, Iterable
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import HTTPException, Request, Security, status
 from fastapi.responses import StreamingResponse
 from itsdangerous import BadSignature, URLSafeSerializer
 from pydantic import NonNegativeInt, PositiveInt
@@ -87,7 +87,7 @@ def _buffered_ndjson_stream(
             "content": ndjson_example_response_for_get_log,
         },
     },
-    dependencies=[Depends(requires_access_dag("GET", DagAccessEntity.TASK_LOGS))],
+    dependencies=[Security(requires_access_dag("GET", DagAccessEntity.TASK_LOGS), scopes=["GET"])],
     response_model=TaskInstancesLogResponse,
     response_model_exclude_unset=True,
 )
@@ -183,7 +183,7 @@ def get_log(
     responses=create_openapi_http_exception_doc(
         [status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT]
     ),
-    dependencies=[Depends(requires_access_dag("GET", DagAccessEntity.TASK_LOGS))],
+    dependencies=[Security(requires_access_dag("GET", DagAccessEntity.TASK_LOGS), scopes=["GET"])],
 )
 def get_external_log_url(
     dag_id: str,

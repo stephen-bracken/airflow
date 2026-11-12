@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import Depends, status
+from fastapi import Depends, Security, status
 
 from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
 from airflow.api_fastapi.common.dagbag import DagBagDep, get_latest_version_of_dag
@@ -42,17 +42,19 @@ calendar_router = AirflowRouter(prefix="/calendar", tags=["Calendar"])
     "/{dag_id}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
     dependencies=[
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.TASK_INSTANCE,
-            )
+            ),
+            scopes=["GET"],
         ),
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.RUN,
-            )
+            ),
+            scopes=["GET"],
         ),
     ],
 )
@@ -82,11 +84,12 @@ def get_calendar(
 @calendar_router.get(
     "/{dag_id}/deadlines",
     dependencies=[
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.RUN,
-            )
+            ),
+            scopes=["GET"],
         ),
     ],
 )

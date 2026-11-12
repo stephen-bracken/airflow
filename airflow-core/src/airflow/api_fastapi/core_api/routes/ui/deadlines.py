@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import contains_eager, noload
@@ -75,11 +75,12 @@ deadlines_router = AirflowRouter(prefix="/dags/{dag_id}", tags=["Deadlines"])
         ]
     ),
     dependencies=[
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
                 access_entity=DagAccessEntity.RUN,
-            )
+            ),
+            scopes=["GET"],
         ),
     ],
 )
@@ -173,10 +174,11 @@ def get_deadlines(
         ]
     ),
     dependencies=[
-        Depends(
+        Security(
             requires_access_dag(
                 method="GET",
-            )
+            ),
+            scopes=["GET"],
         ),
     ],
 )
@@ -248,7 +250,9 @@ def get_dag_deadline_alerts(
             "content": ndjson_example_response_for_get_log,
         },
     },
-    dependencies=[Depends(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_LOGS))],
+    dependencies=[
+        Security(requires_access_dag(method="GET", access_entity=DagAccessEntity.TASK_LOGS), scopes=["GET"])
+    ],
     response_model=TaskInstancesLogResponse,
     response_model_exclude_unset=True,
 )

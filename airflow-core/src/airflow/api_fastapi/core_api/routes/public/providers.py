@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, Security, status
 
 from airflow.api_fastapi.auth.managers.models.resource_details import AccessView
 from airflow.api_fastapi.common.parameters import QueryLimit, QueryOffset
@@ -36,7 +36,7 @@ providers_router = AirflowRouter(tags=["Provider"], prefix="/providers")
 
 @providers_router.get(
     "",
-    dependencies=[Depends(requires_access_view(AccessView.PROVIDERS))],
+    dependencies=[Security(requires_access_view(AccessView.PROVIDERS), scopes=["GET"])],
 )
 def get_providers(
     limit: QueryLimit,
@@ -56,7 +56,7 @@ def get_providers(
 @providers_router.get(
     "/{provider_name}",
     responses=create_openapi_http_exception_doc([status.HTTP_404_NOT_FOUND]),
-    dependencies=[Depends(requires_access_view(AccessView.PROVIDERS))],
+    dependencies=[Security(requires_access_view(AccessView.PROVIDERS), scopes=["GET"])],
 )
 def get_provider(provider_name: str) -> ProviderDetailsResponse:
     """Get detailed information about an installed provider."""

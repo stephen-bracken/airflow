@@ -34,6 +34,7 @@ from airflow.api_fastapi.app import get_auth_manager
 from airflow.api_fastapi.auth.managers.base_auth_manager import (
     COOKIE_NAME_JWT_TOKEN,
     BaseAuthManager,
+    ExtendedResourceMethod,
 )
 from airflow.api_fastapi.auth.managers.models.base_user import BaseUser
 from airflow.api_fastapi.auth.managers.models.batch_apis import (
@@ -112,7 +113,12 @@ auth_description = (
     "information (such as user identity and scope) to authenticate subsequent requests. "
     "To learn more about Airflow public API authentication, please read https://airflow.apache.org/docs/apache-airflow/stable/security/api.html."
 )
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", description=auth_description, auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/auth/token",
+    description=auth_description,
+    auto_error=False,
+    scopes={str(method): f"Airflow {method} resource method." for method in ExtendedResourceMethod},
+)
 bearer_scheme = HTTPBearer(auto_error=False)
 
 MAP_BULK_ACTION_TO_AUTH_METHOD: dict[BulkAction, ResourceMethod] = {
